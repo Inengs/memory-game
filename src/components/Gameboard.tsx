@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { createCards, Card } from "./Card";
 import Scoreboard from "./Scoreboard";
 import useLocalStorage from "../hooks/useLocalStorage";
+import background from "../assets/game-bg.jpg";
+import flipSound from "../assets/flip.wav";
+import confetti from "canvas-confetti";
 
 /**
  * Type definition for a single card object
@@ -40,11 +43,7 @@ function Gameboard() {
   // Initialize deck on mount - add revealed: false to each card
   useEffect(() => {
     // call createCards to generate and shuffle the deck
-    const initialDeck = createCards().map((card) => ({
-      ...card,
-      revealed: false,
-    }));
-
+    const initialDeck = createCards();
     //store the shuffled deck in state
     setDeck(initialDeck);
   }, []); // Empty dependency array = run only once on mount
@@ -115,6 +114,8 @@ function Gameboard() {
             bestScore === null || moves < bestScore ? " New best score!" : ""
           }`
         );
+
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
       }, 500);
     }
   }, [matchesFound, moves, bestScore, setBestScore]);
@@ -162,14 +163,14 @@ function Gameboard() {
       setSecondSelection(clickedCard);
       console.log("Second card selected:", clickedCard);
     }
+
+    const audio = new Audio(flipSound);
+    audio.play();
   };
 
   const restartGame = () => {
     // Shuffle and reset deck
-    const newDeck = createCards().map((card) => ({
-      ...card,
-      revealed: false,
-    }));
+    const newDeck = createCards();
     setDeck(newDeck);
 
     // Reset all game state
@@ -185,8 +186,9 @@ function Gameboard() {
     <div
       className="min-h-screen flex items-center justify-center p-8"
       style={{
-        backgroundImage: "url(/assets/game_bg)",
-        backgroundRepeat: "repeat",
+        backgroundImage: `url(${background})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
       }}
     >
       <div className="max-w-2xl w-full">
@@ -212,7 +214,6 @@ function Gameboard() {
             />
           ))}
         </div>
-        // In your return statement, replace the stats div with:
         <Scoreboard
           moves={moves}
           matchesFound={matchesFound}
